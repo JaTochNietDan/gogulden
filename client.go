@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/rpc/json"
 )
 
+// Client should be initialised using NewClient.
 type Client struct {
 	username string
 	password string
@@ -21,9 +22,11 @@ type Client struct {
 type rpcRequest struct {
 	Method string        `json:"method"`
 	Params []interface{} `json:"params"`
-	Id     uint64        `json:"id"`
+	ID     uint64        `json:"id"`
 }
 
+// NewClient initialises the gogulden RPC client. The host should be the in the
+// following format: http://127.0.0.1:9232.
 func NewClient(username, password, host string) (*Client, error) {
 	client := &Client{
 		username: username,
@@ -46,7 +49,7 @@ func (c *Client) runCommand(result interface{}, command string, args ...interfac
 	message, err := gojson.Marshal(&rpcRequest{
 		Method: command,
 		Params: args,
-		Id:     uint64(rand.Int63()),
+		ID:     uint64(rand.Int63()),
 	})
 
 	req, err := http.NewRequest("POST", c.host, bytes.NewBuffer(message))
