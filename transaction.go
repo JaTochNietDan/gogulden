@@ -16,21 +16,24 @@ type TransactionItem struct {
 }
 
 type TransactionData struct {
-	Confirmations int       `json:"confirmations"`
-	TransactionId string    `json:"txid"`
-	Time          time.Time `json:"-"`
+	Confirmations int    `json:"confirmations"`
+	TransactionId string `json:"txid"`
+
+	UnixTime unixTime `json:"time"`
 }
 
 type Details struct {
-	Account             string  `json:"account"`
-	Address             string  `json:"address"`
-	Category            string  `json:"category"`
-	Amount              float32 `json:"amount"`
-	Vout                int     `json:"vout"`
-	SecuredByCheckpoint bool    `json:"-"`
+	Account  string  `json:"account"`
+	Address  string  `json:"address"`
+	Category string  `json:"category"`
+	Amount   float32 `json:"amount"`
+	Vout     int     `json:"vout"`
 
-	SecuredByCheckpointStr string `json:"secured_by_checkpoint"`
+	SecuredByCheckpoint securedByCheckpoint `json:"secured_by_checkpoint"`
 }
+
+type securedByCheckpoint bool
+type unixTime time.Time
 
 func (c *Client) Transactions(account string, count int, from string, includeWatchOnly bool) ([]*TransactionItem, error) {
 	params := []interface{}{}
@@ -69,46 +72,30 @@ func (c *Client) GetTransaction(transactionId string) (*Transaction, error) {
 	return &transaction, nil
 }
 
-func (t *Transaction) UnmarshalJSON(data []byte) error {
-	type Alias Transaction
-
-	aux := &struct {
-		*Alias
-
-		Time int64 `json:"time"`
-	}{
-		Alias: (*Alias)(t),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
+func (t *unixTime) UnmarshalJSON(data []byte) error {
+	var timeSeconds int64
+	if err := json.Unmarshal(data, &timeSeconds); err != nil {
 		return err
 	}
 
-	for idx := range t.Details {
-		d := &t.Details[idx]
-		d.SecuredByCheckpoint = d.SecuredByCheckpointStr == "yes"
-	}
-
-	t.Time = time.Unix(aux.Time, 0)
+	*t = unixTime(time.Unix(timeSeconds, 0))
 	return nil
 }
 
-func (t *TransactionItem) UnmarshalJSON(data []byte) error {
-	type Alias TransactionItem
-
-	aux := &struct {
-		*Alias
-
-		Time int64 `json:"time"`
-	}{
-		Alias: (*Alias)(t),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
+func (s *securedByCheckpoint) UnmarshalJSON(data []byte) error {
+	var secured string
+	if err := json.Unmarshal(data, &secured); err != nil {
 		return err
 	}
 
-	t.Details.SecuredByCheckpoint = t.Details.SecuredByCheckpointStr == "yes"
-	t.Time = time.Unix(aux.Time, 0)
+	*s = securedByCheckpoint(secured == "yes")
 	return nil
+}
+
+func (d *Details) Secured() bool {
+	return bool(d.SecuredByCheckpoint)
+}
+
+func (td *TransactionData) Time() time.Time {
+	return time.Time(td.UnixTime)
 }
