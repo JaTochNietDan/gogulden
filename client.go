@@ -19,9 +19,9 @@ type Client struct {
 }
 
 type rpcRequest struct {
-	Method string   `json:"method"`
-	Params []string `json:"params"`
-	Id     uint64   `json:"id"`
+	Method string        `json:"method"`
+	Params []interface{} `json:"params"`
+	Id     uint64        `json:"id"`
 }
 
 func NewClient(username, password, host string) (*Client, error) {
@@ -42,7 +42,7 @@ func NewClient(username, password, host string) (*Client, error) {
 	return client, nil
 }
 
-func (c *Client) runCommand(result interface{}, command string, args ...string) error {
+func (c *Client) runCommand(result interface{}, command string, args ...interface{}) error {
 	message, err := gojson.Marshal(&rpcRequest{
 		Method: command,
 		Params: args,

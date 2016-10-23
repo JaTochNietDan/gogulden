@@ -2,7 +2,6 @@ package gogulden
 
 import (
 	"encoding/json"
-	"strconv"
 	"time"
 )
 
@@ -19,13 +18,13 @@ type Transaction struct {
 }
 
 func (c *Client) Transactions(account string, count int, from string, includeWatchOnly bool) ([]*Transaction, error) {
-	params := []string{}
+	params := []interface{}{}
 	if account != "" {
 		params = append(params, account)
 	}
 
 	if len(params) == 1 && count > 0 {
-		params = append(params, strconv.Itoa(count))
+		params = append(params, count)
 	}
 
 	if len(params) == 2 && from != "" {
@@ -33,7 +32,7 @@ func (c *Client) Transactions(account string, count int, from string, includeWat
 	}
 
 	if len(params) == 3 {
-		params = append(params, strconv.FormatBool(includeWatchOnly))
+		params = append(params, includeWatchOnly)
 	}
 
 	transactions := []*Transaction{}
