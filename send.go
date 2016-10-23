@@ -25,7 +25,7 @@ func (c *Client) SendToAddress(address string, amount float32, comment, commentT
 
 	var transactionID string
 	err = c.runCommand(&transactionID, "sendtoaddress", address, amount, comment, commentTo, subtractFee)
-	return transactionID, nil
+	return transactionID, err
 }
 
 // SendFrom will send a specified amount to an address from a specific account
@@ -42,5 +42,5 @@ func (c *Client) SendFrom(account, to string, amount float32, minconf int, comme
 
 	var transactionID string
 	err = c.runCommand(&transactionID, "sendfrom", account, to, amount, minconf, comment, commentTo)
-	return transactionID, nil
+	return transactionID, err
 }
