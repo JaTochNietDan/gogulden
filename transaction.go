@@ -35,26 +35,19 @@ type Details struct {
 type securedByCheckpoint bool
 type unixTime time.Time
 
-func (c *Client) Transactions(account string, count int, from string, includeWatchOnly bool) ([]*TransactionItem, error) {
-	params := []interface{}{}
-	if account != "" {
-		params = append(params, account)
-	}
-
-	if len(params) == 1 && count > 0 {
-		params = append(params, count)
-	}
-
-	if len(params) == 2 && from != "" {
-		params = append(params, from)
-	}
-
-	if len(params) == 3 {
-		params = append(params, includeWatchOnly)
-	}
-
+func (c *Client) GetTransactionsOnAccount(account string, count int, from int, includeWatchOnly bool) ([]*TransactionItem, error) {
 	transactions := []*TransactionItem{}
-	err := c.runCommand(&transactions, "listtransactions", params...)
+	err := c.runCommand(&transactions, "listtransactions", account, count, from, includeWatchOnly)
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
+
+func (c *Client) GetAllTransactions() ([]*TransactionItem, error) {
+	transactions := []*TransactionItem{}
+	err := c.runCommand(&transactions, "listtransactions")
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +63,16 @@ func (c *Client) GetTransaction(transactionId string) (*Transaction, error) {
 	}
 
 	return &transaction, nil
+}
+
+func (c *Client) SendToAddress(address string, amount float32, comment, commentTo string, subtractFee bool) (string, error) {
+	var transactionId string
+	err := c.runCommand(&transactionId, "sendtoaddress", address, amount, comment, commentTo, subtractFee)
+	if err != nil {
+		return "", err
+	}
+
+	return transactionId, nil
 }
 
 func (t *unixTime) UnmarshalJSON(data []byte) error {
