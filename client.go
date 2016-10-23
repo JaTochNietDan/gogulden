@@ -2,13 +2,13 @@ package gogulden
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
 
-	gojson "encoding/json"
-
-	"github.com/gorilla/rpc/json"
+	"encoding/json"
 )
 
 // Client should be initialised using NewClient.
@@ -23,6 +23,12 @@ type rpcRequest struct {
 	Method string        `json:"method"`
 	Params []interface{} `json:"params"`
 	ID     uint64        `json:"id"`
+}
+
+type rpcResponse struct {
+	Result *json.RawMessage `json:"result"`
+	Error  interface{}      `json:"error"`
+	ID     uint64           `json:"id"`
 }
 
 // NewClient initialises the gogulden RPC client. The host should be the in the
@@ -46,7 +52,7 @@ func NewClient(username, password, host string) (*Client, error) {
 }
 
 func (c *Client) runCommand(result interface{}, command string, args ...interface{}) error {
-	message, err := gojson.Marshal(&rpcRequest{
+	message, err := json.Marshal(&rpcRequest{
 		Method: command,
 		Params: args,
 		ID:     uint64(rand.Int63()),
@@ -65,10 +71,21 @@ func (c *Client) runCommand(result interface{}, command string, args ...interfac
 	}
 	defer resp.Body.Close()
 
-	err = json.DecodeClientResponse(resp.Body, result)
-	if err != nil {
+	var rpcResp rpcResponse
+	if err := json.NewDecoder(resp.Body).Decode(&rpcResp); err != nil {
 		return err
 	}
+	if rpcResp.Error != nil {
+		if m, ok := rpcResp.Error.(map[string]interface{}); ok {
+			if message, ok := m["message"]; ok {
+				return fmt.Errorf("%v", message)
+			}
+		}
+		return fmt.Errorf("%v", rpcResp.Error)
+	}
+	if rpcResp.Result == nil {
+		return errors.New("result is null")
+	}
 
-	return nil
+	return json.Unmarshal(*rpcResp.Result, result)
 }
