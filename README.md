@@ -1,5 +1,5 @@
 # gogulden [![godoc Reference](https://godoc.org/github.com/JaTochNietDan/gogulden?status.svg)](https://godoc.org/github.com/JaTochNietDan/gogulden)
-Go API for the Gulden cryptocurrency https://gulden.com/
+Go API for the Gulden cryptocurrency https://gulden.com/.
 
 ## Usage
 You must be running the Gulden RPC server to use this library. If you are using the downloaded wallet, then you can do this by simply running ./Gulden -server. Gulden will require you to set up authentication information for this RPC server before running it. It explains how to do this in a popup when you try to run the wallet with the -server flag.
@@ -27,6 +27,13 @@ func main() {
 
 	fmt.Printf("Wallet: %#v\n", walletInfo)
 	// Got wallet info: &gogulden.WalletInfo{Version:60000, Balance:0, UnconfirmedBalance:0, ImmatureBalance:0, TransactionCount:0, KeyPoolOldest:1477213584, KeyPoolSize:101}
+	
+	txId, err := client.SendToAddress("GJJBHgvffKMXcabszV9A5eQEgXZDe6bN3x", 1, "Donation", ":)", true)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println("Transaction:", txId)
 }
 
 ```
