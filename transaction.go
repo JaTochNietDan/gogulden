@@ -38,31 +38,25 @@ type unixTime time.Time
 func (c *Client) GetTransactionsOnAccount(account string, count int, from int, includeWatchOnly bool) ([]*TransactionItem, error) {
 	transactions := []*TransactionItem{}
 	err := c.runCommand(&transactions, "listtransactions", account, count, from, includeWatchOnly)
-	if err != nil {
-		return nil, err
-	}
-
-	return transactions, nil
+	return transactions, err
 }
 
 func (c *Client) GetAllTransactions() ([]*TransactionItem, error) {
 	transactions := []*TransactionItem{}
 	err := c.runCommand(&transactions, "listtransactions")
-	if err != nil {
-		return nil, err
-	}
-
-	return transactions, nil
+	return transactions, err
 }
 
 func (c *Client) GetTransaction(transactionId string) (*Transaction, error) {
 	var transaction Transaction
 	err := c.runCommand(&transaction, "gettransaction", transactionId)
-	if err != nil {
-		return nil, err
-	}
+	return &transaction, err
+}
 
-	return &transaction, nil
+func (c *Client) SetTransactionFee(amount float32) (bool, error) {
+	var feeSet bool
+	err := c.runCommand(&feeSet, "settxfee", amount)
+	return feeSet, err
 }
 
 func (t *unixTime) UnmarshalJSON(data []byte) error {

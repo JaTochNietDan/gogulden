@@ -1,5 +1,10 @@
 package gogulden
 
+import (
+	"fmt"
+	"os"
+)
+
 type WalletInfo struct {
 	Version            int     `json:"walletversion"`
 	Balance            float32 `json:"balance"`
@@ -64,4 +69,38 @@ func (c *Client) GetUnconfirmedBalance() (float32, error) {
 	var balance float32
 	err := c.runCommand(&balance, "getunconfirmedbalance")
 	return balance, err
+}
+
+func (c *Client) BackupWallet(path string) error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	err = c.runCommand(nil, "backupwallet", fmt.Sprintf("%s/%s", wd, path))
+	if err.Error() != "result is null" {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) DumpWallet(path string) error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	err = c.runCommand(nil, "dumpwallet", fmt.Sprintf("%s/%s", wd, path))
+	if err.Error() != "result is null" {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) GetPrivateKey(address string) (string, error) {
+	var key string
+	err := c.runCommand(&key, "dumpprivkey", address)
+	return key, err
 }
