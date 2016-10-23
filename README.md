@@ -1,4 +1,4 @@
-# gogulden ![godoc Reference](https://godoc.org/github.com/JaTochNietDan/gogulden?status.svg)
+# gogulden [![godoc Reference](https://godoc.org/github.com/JaTochNietDan/gogulden?status.svg)](https://godoc.org/github.com/JaTochNietDan/gogulden)
 Go interface for the Gulden cryptocurrency https://gulden.com/
 
 ## Usage
