@@ -17,17 +17,12 @@ import (
 func main() {
 	client, err := gogulden.NewClient("username", "password", "http://127.0.0.1:9232")
 	if err != nil {
-		log.Fatalln("Fatal:", err)
-	}
-
-	_, err = client.Help("")
-	if err != nil {
-		log.Fatalln("Error", err)
+		log.Fatalln("Couldn't initialize client:", err)
 	}
 
 	walletInfo, err := client.WalletInfo()
 	if err != nil {
-		log.Fatalln("Error:", err)
+		log.Fatalln("Couldn't get wallet info:", err)
 	}
 
 	fmt.Printf("Wallet: %#v\n", walletInfo)
