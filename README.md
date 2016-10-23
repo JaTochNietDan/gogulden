@@ -1,5 +1,5 @@
 # gogulden ![godoc Reference](https://godoc.org/github.com/JaTochNietDan/gogulden?status.svg)
-Go API interface for the Gulden cryptocurrency https://gulden.com/
+Go interface for the Gulden cryptocurrency https://gulden.com/
 
 ## Usage
 You must be running the Gulden RPC server to use this library. If you are using the downloaded wallet, then you can do this by simply running ./Gulden -server. Gulden will require you to set up authentication information for this RPC server before running it. It explains how to do this in a popup when you try to run the wallet with the -server flag.
