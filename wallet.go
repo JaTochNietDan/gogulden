@@ -20,7 +20,7 @@ type Account struct {
 	Balance float32
 }
 
-func (c *Client) WalletInfo() (*WalletInfo, error) {
+func (c *Client) GetWalletInfo() (*WalletInfo, error) {
 	var walletInfo WalletInfo
 	err := c.runCommand(&walletInfo, "getwalletinfo")
 	if err != nil {
@@ -29,7 +29,7 @@ func (c *Client) WalletInfo() (*WalletInfo, error) {
 	return &walletInfo, nil
 }
 
-func (c *Client) Accounts() ([]*Account, error) {
+func (c *Client) GetAccounts() ([]*Account, error) {
 	data := map[string]float32{}
 	err := c.runCommand(&data, "listaccounts")
 	if err != nil {
@@ -57,6 +57,12 @@ func (c *Client) GetAccount(address string) (string, error) {
 	var account string
 	err := c.runCommand(&account, "getaccount", address)
 	return account, err
+}
+
+func (c *Client) GetAddress(account string) (string, error) {
+	var address string
+	err := c.runCommand(&address, "getaccountaddress", account)
+	return address, err
 }
 
 func (c *Client) GetAddresses(account string) ([]string, error) {
@@ -103,4 +109,19 @@ func (c *Client) GetPrivateKey(address string) (string, error) {
 	var key string
 	err := c.runCommand(&key, "dumpprivkey", address)
 	return key, err
+}
+
+func (c *Client) NewAddress(account string) (string, error) {
+	var address string
+	err := c.runCommand(&address, "getnewaddress", account)
+	return address, err
+}
+
+func (c *Client) SetAccount(address, account string) error {
+	err = c.runCommand(nil, "setaccount", address, account)
+	if err.Error() != "result is null" {
+		return err
+	}
+
+	return nil
 }
