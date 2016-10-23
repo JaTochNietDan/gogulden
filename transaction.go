@@ -6,18 +6,33 @@ import (
 )
 
 type Transaction struct {
-	Account             string    `json:"account"`
-	Address             string    `json:"address"`
-	Category            string    `json:"category"`
-	Amount              float32   `json:"amount"`
-	Vout                int       `json:"vout"`
-	SecuredByCheckpoint bool      `json:"-"`
-	Confirmations       int       `json:"confirmations"`
-	TransactionId       string    `json:"txid"`
-	Time                time.Time `json:"-"`
+	TransactionData
+	Details []Details `json:"details"`
 }
 
-func (c *Client) Transactions(account string, count int, from string, includeWatchOnly bool) ([]*Transaction, error) {
+type TransactionItem struct {
+	Details
+	TransactionData
+}
+
+type TransactionData struct {
+	Confirmations int       `json:"confirmations"`
+	TransactionId string    `json:"txid"`
+	Time          time.Time `json:"-"`
+}
+
+type Details struct {
+	Account             string  `json:"account"`
+	Address             string  `json:"address"`
+	Category            string  `json:"category"`
+	Amount              float32 `json:"amount"`
+	Vout                int     `json:"vout"`
+	SecuredByCheckpoint bool    `json:"-"`
+
+	SecuredByCheckpointStr string `json:"secured_by_checkpoint"`
+}
+
+func (c *Client) Transactions(account string, count int, from string, includeWatchOnly bool) ([]*TransactionItem, error) {
 	params := []interface{}{}
 	if account != "" {
 		params = append(params, account)
@@ -35,7 +50,7 @@ func (c *Client) Transactions(account string, count int, from string, includeWat
 		params = append(params, includeWatchOnly)
 	}
 
-	transactions := []*Transaction{}
+	transactions := []*TransactionItem{}
 	err := c.runCommand(&transactions, "listtransactions", params...)
 	if err != nil {
 		return nil, err
@@ -44,14 +59,23 @@ func (c *Client) Transactions(account string, count int, from string, includeWat
 	return transactions, nil
 }
 
+func (c *Client) GetTransaction(transactionId string) (*Transaction, error) {
+	var transaction Transaction
+	err := c.runCommand(&transaction, "gettransaction", transactionId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &transaction, nil
+}
+
 func (t *Transaction) UnmarshalJSON(data []byte) error {
 	type Alias Transaction
 
 	aux := &struct {
 		*Alias
 
-		SecuredByCheckpoint string `json:"secured_by_checkpoint"`
-		Time                int64  `json:"time"`
+		Time int64 `json:"time"`
 	}{
 		Alias: (*Alias)(t),
 	}
@@ -60,8 +84,31 @@ func (t *Transaction) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	t.SecuredByCheckpoint = aux.SecuredByCheckpoint == "yes"
-	t.Time = time.Unix(aux.Time, 0)
+	for idx := range t.Details {
+		d := &t.Details[idx]
+		d.SecuredByCheckpoint = d.SecuredByCheckpointStr == "yes"
+	}
 
+	t.Time = time.Unix(aux.Time, 0)
+	return nil
+}
+
+func (t *TransactionItem) UnmarshalJSON(data []byte) error {
+	type Alias TransactionItem
+
+	aux := &struct {
+		*Alias
+
+		Time int64 `json:"time"`
+	}{
+		Alias: (*Alias)(t),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	t.Details.SecuredByCheckpoint = t.Details.SecuredByCheckpointStr == "yes"
+	t.Time = time.Unix(aux.Time, 0)
 	return nil
 }
