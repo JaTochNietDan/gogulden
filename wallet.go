@@ -41,3 +41,27 @@ func (c *Client) Accounts() ([]*Account, error) {
 
 	return accounts, nil
 }
+
+func (c *Client) GetBalance(account string, minConf int, includeWatchOnly bool) (float32, error) {
+	var balance float32
+	err := c.runCommand(&balance, "getbalance", account, minConf, includeWatchOnly)
+	return balance, err
+}
+
+func (c *Client) GetAccount(address string) (string, error) {
+	var account string
+	err := c.runCommand(&account, "getaccount", address)
+	return account, err
+}
+
+func (c *Client) GetAddresses(account string) ([]string, error) {
+	var addresses []string
+	err := c.runCommand(&addresses, "getaddressesbyaccount", account)
+	return addresses, err
+}
+
+func (c *Client) GetUnconfirmedBalance() (float32, error) {
+	var balance float32
+	err := c.runCommand(&balance, "getunconfirmedbalance")
+	return balance, err
+}
