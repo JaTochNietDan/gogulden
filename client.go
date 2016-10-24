@@ -31,6 +31,10 @@ type rpcResponse struct {
 	ID     uint64           `json:"id"`
 }
 
+// ErrIsNull will be returned when the result of an RPC request is empty, it
+// does not necessaarily mean it's a failure.
+var ErrIsNull = errors.New("result is null")
+
 // NewClient initialises the gogulden RPC client. The host should be the in the
 // following format: http://127.0.0.1:9232.
 func NewClient(username, password, host string) (*Client, error) {
@@ -84,7 +88,7 @@ func (c *Client) runCommand(result interface{}, command string, args ...interfac
 		return fmt.Errorf("%v", rpcResp.Error)
 	}
 	if rpcResp.Result == nil {
-		return errors.New("result is null")
+		return ErrIsNull
 	}
 
 	return json.Unmarshal(*rpcResp.Result, result)
