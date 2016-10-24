@@ -100,7 +100,7 @@ func (c *Client) BackupWallet(path string) error {
 	}
 
 	err = c.runCommand(nil, "backupwallet", fmt.Sprintf("%s/%s", wd, path))
-	if err.Error() != "result is null" {
+	if err != nil && err.Error() != "result is null" {
 		return err
 	}
 
@@ -116,7 +116,7 @@ func (c *Client) DumpWallet(path string) error {
 	}
 
 	err = c.runCommand(nil, "dumpwallet", fmt.Sprintf("%s/%s", wd, path))
-	if err.Error() != "result is null" {
+	if err != nil && err.Error() != "result is null" {
 		return err
 	}
 
